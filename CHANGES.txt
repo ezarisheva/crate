@@ -20,7 +20,10 @@ Changes
 
 Fixes
 =====
-
+ 
+ - Fixed an issue where the user that gets provided by the client on connect is
+   not always used as current user if host based authentication is disabled.
+ 
  - Implemented ``NOT NULL`` constraint validation for nested object columns,
    which was previously ignored. E.g.::
 
