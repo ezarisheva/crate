@@ -305,6 +305,9 @@ public class TransportShardUpsertAction extends TransportShardAction<ShardUpsert
 
         List<Input<?>> updateInputs = new ArrayList<>();
         for (Symbol symbol : updateAssignments) {
+            if (symbol instanceof GeneratedReference) {
+                symbol = ((GeneratedReference) symbol).generatedExpression();
+            }
             updateInputs.add(universalContext.add(symbol));
         }
 

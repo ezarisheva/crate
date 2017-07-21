@@ -25,7 +25,6 @@ package io.crate.metadata;
 import com.google.common.base.Objects;
 import io.crate.analyze.symbol.Symbol;
 import io.crate.analyze.symbol.SymbolType;
-import io.crate.analyze.symbol.SymbolVisitor;
 import io.crate.analyze.symbol.Symbols;
 import io.crate.metadata.table.ColumnPolicy;
 import io.crate.types.DataType;
@@ -92,14 +91,6 @@ public class GeneratedReference extends Reference {
 
     public List<Reference> referencedReferences() {
         return referencedReferences;
-    }
-
-    @Override
-    public <C, R> R accept(SymbolVisitor<C, R> visitor, C context) {
-        if (generatedExpression != null) {
-            return generatedExpression.accept(visitor, context);
-        }
-        return super.accept(visitor, context);
     }
 
     @Override
