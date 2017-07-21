@@ -392,15 +392,32 @@ class AstBuilder extends SqlBaseBaseVisitor<Node> {
     public Node visitInsert(SqlBaseParser.InsertContext context) {
         List<String> columns = identsToStrings(context.ident());
 
+        Table table = null;
+        try {
+            table = (Table) visit(context.table());
+        } catch (Throwable t) {
+            if (visit(context.table()) instanceof TableFunction) {
+                TableFunction tf = (TableFunction) visit(context.table());
+                for (Expression ex : tf.functionCall().getArguments()) {
+                    if (!(ex instanceof QualifiedNameReference)) {
+                        throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                            "invalid table column reference %s", ex.toString()));
+                    }
+                }
+            } else {
+                throw t;
+            }
+        }
+
         if (context.insertSource().VALUES() != null) {
             return new InsertFromValues(
-                (Table) visit(context.table()),
+                table,
                 visit(context.insertSource().values(), ValuesList.class),
                 columns,
                 visit(context.assignment(), Assignment.class));
         }
         return new InsertFromSubquery(
-            (Table) visit(context.table()),
+            table,
             (Query) visit(context.insertSource().query()),
             columns,
             visit(context.assignment(), Assignment.class));
