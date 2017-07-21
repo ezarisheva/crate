@@ -297,15 +297,15 @@ public class TransportShardUpsertAction extends TransportShardAction<ShardUpsert
 
     private List<Input<?>> resolveSymbols(ReferenceResolver<CollectExpression<GetResult, ?>> referenceResolver,
                                           GetResult getResult,
-                                          List<? extends Symbol> updateAssignments,
+                                          Iterable<? extends Symbol> updateAssignments,
                                           @Nullable Object[] insertValues) {
 
         InputFactory.ContextInputAware<CollectExpression<GetResult, ?>> universalContext =
             inputFactory.ctxForRefsWithInputCols(referenceResolver);
 
-        List<Input<?>> updateSymbols = new ArrayList<>();
+        List<Input<?>> updateInputs = new ArrayList<>();
         for (Symbol symbol : updateAssignments) {
-            updateSymbols.add(universalContext.add(symbol));
+            updateInputs.add(universalContext.add(symbol));
         }
 
         List<CollectExpression<GetResult, ?>> expressions = universalContext.expressions();
@@ -320,7 +320,7 @@ public class TransportShardUpsertAction extends TransportShardAction<ShardUpsert
             rowCollectExpression.setNextRow(arrayRow);
         }
 
-        return updateSymbols;
+        return updateInputs;
     }
 
     /**
@@ -335,7 +335,7 @@ public class TransportShardUpsertAction extends TransportShardAction<ShardUpsert
 
         GetResult getResult = getDocument(indexShard, request, item);
 
-        List<Input<?>> updatedSymbols = resolveSymbols(GetResultRefResolver.INSTANCE,
+        List<Input<?>> updateInputs = resolveSymbols(GetResultRefResolver.INSTANCE,
             getResult, Arrays.asList(item.updateAssignments()), item.insertValues());
 
         Map<String, Object> pathsToUpdate = new LinkedHashMap<>();
@@ -346,7 +346,7 @@ public class TransportShardUpsertAction extends TransportShardAction<ShardUpsert
              * the data might be returned in the wrong format (date as string instead of long)
              */
             String columnPath = request.updateColumns()[i];
-            Object value = updatedSymbols.get(i).value();
+            Object value = updateInputs.get(i).value();
 
             Reference reference = tableInfo.getReference(ColumnIdent.fromPath(columnPath));
 
@@ -577,7 +577,7 @@ public class TransportShardUpsertAction extends TransportShardAction<ShardUpsert
         List<Input<?>> generatedSymbols = resolveSymbols(
             new GetResultOrGeneratedColumnsResolver(updatedColumns),
             getResult,
-            generatedReferences.stream().map(GeneratedReference::generatedExpression).collect(Collectors.toList()),
+            generatedReferences,
             null);
         for(int i = 0; i < generatedReferences.size(); i++) {
             final GeneratedReference reference = generatedReferences.get(i);
