@@ -21,12 +21,17 @@ Changes
 Fixes
 =====
 
+ - Fixed a regression causing incorrect results for queries with ``DISTINCT``
+   on scalar functions. E.g.::
+
+     SELECT DISTINCT upper(name) FROM t
+
  - Fixed a NPE when running ``select port from sys.nodes`` and
    ``psql.enabled: false`` was set
 
  - Fixed an issue where the user that gets provided by the client on connect is
    not always used as current user if host based authentication is disabled.
- 
+
  - Implemented ``NOT NULL`` constraint validation for nested object columns,
    which was previously ignored. E.g.::
 
